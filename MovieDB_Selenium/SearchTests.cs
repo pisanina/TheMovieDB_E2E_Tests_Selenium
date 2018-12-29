@@ -8,6 +8,8 @@ namespace TheMovieDB
     public class MovieTest : IDisposable
     {
         private IWebDriver driver;
+        private SearchPageObject SearchObject;
+
 
         [Theory]
         [InlineData("am"                 , "movie_6479")]
@@ -27,11 +29,9 @@ namespace TheMovieDB
         [InlineData("Game of Thrones"    , "tv_1399")]
         public void TestsSearch(string Query, string Result)
         {
-            driver.Url = "https://www.themoviedb.org/";
 
-            IWebElement Search = driver.FindElement(By.Id("search_v4"));
-            Search.SendKeys(Query);
-            Search.SendKeys(Keys.Enter);
+
+            SearchObject.Search(Query);
 
             IWebElement IAm = driver.FindElement(By.Id(Result));
             Assert.NotNull(IAm);
@@ -51,12 +51,11 @@ namespace TheMovieDB
         [InlineData("")]
         [InlineData(" ")]
         public void TestsSearchToNoResults(string Query)
-        {
-            driver.Url = "https://www.themoviedb.org/";
 
-            IWebElement Search = driver.FindElement(By.Id("search_v4"));
-            Search.SendKeys(Query);
-            Search.SendKeys(Keys.Enter);
+        {
+
+            SearchObject.Search(Query);
+
 
             IWebElement IAm = driver.FindElement(By.XPath("//*[@id=\"main\"]/div/section/section/div[1]/div/p"));
             Assert.NotNull(IAm);
@@ -65,11 +64,9 @@ namespace TheMovieDB
         [Fact]
         public void JavaScriptInjectionTest()
         {
-            driver.Url = "https://www.themoviedb.org/";
 
-            IWebElement Search = driver.FindElement(By.Id("search_v4"));
-            Search.SendKeys("<script>alert('Hello World!');</script>");
-            Search.SendKeys(Keys.Enter);
+
+            SearchObject.Search("<script>alert('Hello World!');</script>");
 
             Assert.Throws<NoAlertPresentException>(() => driver.SwitchTo().Alert());
         }
@@ -78,17 +75,14 @@ namespace TheMovieDB
         [Fact]
         public void SecondSearchTest()
         {
-            driver.Url = "https://www.themoviedb.org/";
 
-            IWebElement Search = driver.FindElement(By.Id("search_v4"));
-            Search.SendKeys("star wars");
-            Search.SendKeys(Keys.Enter);
+
+            SearchObject.Search("Star Wars");
+
             IWebElement Result = driver.FindElement(By.Id("movie_11"));
 
-            Search = driver.FindElement(By.Id("search_v4"));
-            Search.Clear();
-            Search.SendKeys("star trek");
-            Search.SendKeys(Keys.Enter);
+            SearchObject.Search("Star Trek");
+
             Result = driver.FindElement(By.Id("tv_253"));
 
             Assert.NotNull(Result);
@@ -105,11 +99,9 @@ namespace TheMovieDB
         [InlineData("network"   , "//*[@id=\"main\"]/div/section/section/div/div/ul/li/a/div/img")]
         public void TestsOfCategories(string Category, string Result)
         {
-            driver.Url = "https://www.themoviedb.org/";
 
-            IWebElement Search = driver.FindElement(By.Id("search_v4"));
-            Search.SendKeys("ama");
-            Search.SendKeys(Keys.Enter);
+
+            SearchObject.Search("ama");
 
             IWebElement SearchCategory = driver.FindElement(By.Id(Category));
 
@@ -122,7 +114,11 @@ namespace TheMovieDB
         public MovieTest()
         {
             driver = new EdgeDriver();
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            SearchObject = new SearchPageObject(driver);
+            driver.Manage().Timeouts().ImplicitWait = Config.TimeOut;
+
+            driver.Url = "https://www.themoviedb.org/";
+
         }
 
         public void Dispose()
