@@ -74,6 +74,27 @@ namespace TheMovieDB
             Assert.Throws<NoAlertPresentException>(() => driver.SwitchTo().Alert());
         }
 
+
+        [Fact]
+        public void SecondSearchTest()
+        {
+            driver.Url = "https://www.themoviedb.org/";
+
+            IWebElement Search = driver.FindElement(By.Id("search_v4"));
+            Search.SendKeys("star wars");
+            Search.SendKeys(Keys.Enter);
+            IWebElement Result = driver.FindElement(By.Id("movie_11"));
+
+            Search = driver.FindElement(By.Id("search_v4"));
+            Search.Clear();
+            Search.SendKeys("star trek");
+            Search.SendKeys(Keys.Enter);
+            Result = driver.FindElement(By.Id("tv_253"));
+
+            Assert.NotNull(Result);
+
+        }
+
         [Theory]
         [InlineData("tv"        , "//*[@id=\"tv_41759\"]")]
         [InlineData("movie"     , "//*[@id=\"movie_567098\"]")]
@@ -101,7 +122,7 @@ namespace TheMovieDB
         public MovieTest()
         {
             driver = new EdgeDriver();
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
         }
 
         public void Dispose()
